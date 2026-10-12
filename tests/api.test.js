@@ -31,6 +31,10 @@ test("history filters malformed messages and keeps last 8", () => {
   assert.equal(result[7].text, "11");
 });
 
+test("history converts stored model role to DeepSeek assistant role", () => {
+  assert.deepEqual(safeHistory([{ role: "model", text: "ответ" }]), [{ role: "assistant", text: "ответ" }]);
+});
+
 test("GET health check returns an ok response", async () => {
   const handler = (await import("../api/index.js")).default;
   let statusCode = 200;
@@ -43,7 +47,7 @@ test("GET health check returns an ok response", async () => {
   await handler({ method: "GET" }, res);
   assert.equal(statusCode, 200);
   assert.equal(payload.ok, true);
-  assert.equal(payload.service, "alice-gemini-serper");
+  assert.equal(payload.service, "alice-deepseek-serper");
 });
 
 test("launch request returns a valid Alice greeting without external API keys", async () => {
