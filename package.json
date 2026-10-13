@@ -1,9 +1,9 @@
 {
-  "name": "alice-deepseek-serper",
-  "version": "1.1.0",
+  "name": "alice-groq-serper",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
-  "description": "Vercel webhook for a Yandex Alice skill powered by DeepSeek with optional Serper web search",
+  "description": "Vercel webhook for a Yandex Alice skill powered by Groq with optional Serper web search",
   "engines": {
     "node": ">=22"
   },
