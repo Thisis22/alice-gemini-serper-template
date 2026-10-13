@@ -14,6 +14,32 @@ const SYSTEM_PROMPT = [
   "Если не знаешь ответа, честно скажи об этом."
 ].join(" ");
 
+function fitSessionState(history) {
+  const result = Array.isArray(history) ? history.map(item => ({ ...item })) : [];
+  const bytes = value => Buffer.byteLength(JSON.stringify(value), "utf8");
+
+  // Yandex Dialogs limits session_state to 1 KB. Leave a margin for serialization.
+  while (result.length && bytes({ history: result }) > 850) {
+    if (result.length > 2) {
+      result.shift();
+      continue;
+    }
+
+    const longest = result.reduce((best, item, index) =>
+      !best || item.text.length > result[best.index].text.length
+        ? { index, length: item.text.length }
+        : best, null);
+
+    if (!longest || longest.length === 0) {
+      result.shift();
+      continue;
+    }
+    result[longest.index].text = result[longest.index].text.slice(0, Math.max(0, longest.length - 50));
+  }
+
+  return result;
+}
+
 function aliceResponse(text, endSession = false, history = []) {
   return {
     version: "1.0",
@@ -21,7 +47,7 @@ function aliceResponse(text, endSession = false, history = []) {
       text: fitAliceText(text),
       end_session: endSession
     },
-    session_state: { history }
+    session_state: { history: fitSessionState(history) }
   };
 }
 
