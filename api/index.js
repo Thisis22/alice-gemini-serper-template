@@ -4,7 +4,7 @@ const MAX_HISTORY_MESSAGE_CHARS = 1200;
 const MAX_ALICE_TEXT = 1024;
 const TOTAL_RESPONSE_BUDGET_MS = 3600;
 const SERPER_TIMEOUT_MS = 600;
-const DEEPSEEK_TIMEOUT_MS = 2500;
+const GROQ_TIMEOUT_MS = 2500;
 
 const SYSTEM_PROMPT = [
   "Ты — полезный голосовой помощник в навыке Яндекс Алисы.",
@@ -115,11 +115,11 @@ async function searchWeb(query, timeoutMs) {
 
 async function askGroq(text, history, searchContext, timeoutMs) {
   const key = process.env.GROQ_API_KEY;
-  if (!key) throw new Error("MISSING_DEEPSEEK_KEY");
+  if (!key) throw new Error("MISSING_GROQ_KEY");
   if (timeoutMs < 250) throw new Error("TIME_BUDGET_EXHAUSTED");
 
   const model = String(process.env.GROQ_MODEL || DEFAULT_MODEL).trim();
-  if (!/^[A-Za-z0-9._-]+$/.test(model)) throw new Error("INVALID_MODEL_NAME");
+  if (!/^[A-Za-z0-9._/-]+$/.test(model)) throw new Error("INVALID_MODEL_NAME");
 
   const messages = [{ role: "system", content: SYSTEM_PROMPT }];
   for (const item of safeHistory(history)) {
@@ -147,7 +147,7 @@ async function askGroq(text, history, searchContext, timeoutMs) {
         stream: false
       })
     },
-    Math.min(DEEPSEEK_TIMEOUT_MS, timeoutMs)
+    Math.min(GROQ_TIMEOUT_MS, timeoutMs)
   );
 
   if (!response.ok) {
@@ -170,7 +170,7 @@ async function askGroq(text, history, searchContext, timeoutMs) {
 
 function errorForUser(error) {
   switch (error?.message) {
-    case "MISSING_DEEPSEEK_KEY":
+    case "MISSING_GROQ_KEY":
       return "Сервер пока не настроен. Добавьте переменную GROQ_API_KEY в настройках Vercel.";
     case "GROQ_KEY_REJECTED":
       return "Не удалось подключиться к Groq. Проверьте API-ключ в настройках Vercel.";
@@ -222,7 +222,7 @@ export default async function handler(req, res) {
       text,
       oldHistory,
       searchContext,
-      Math.max(0, Math.min(DEEPSEEK_TIMEOUT_MS, remainingMs() - 600))
+      Math.max(0, Math.min(GROQ_TIMEOUT_MS, remainingMs() - 600))
     );
 
     const history = [
