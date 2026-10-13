@@ -65,3 +65,13 @@ test("launch request returns a valid Alice greeting without external API keys", 
   assert.match(payload.response.text, /Привет/);
   assert.equal(payload.response.end_session, false);
 });
+
+test("session state stays below Yandex Dialogs 1 KB limit", () => {
+  const { aliceResponse } = await import("../api/index.js");
+  const history = Array.from({ length: 8 }, (_, i) => ({
+    role: i % 2 ? "model" : "user",
+    text: "Длинный русский текст для проверки размера состояния. ".repeat(20) + i
+  }));
+  const result = aliceResponse("Ок", false, history);
+  assert.ok(Buffer.byteLength(JSON.stringify(result.session_state), "utf8") <= 1024);
+});
